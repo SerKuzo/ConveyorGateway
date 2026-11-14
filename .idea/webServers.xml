@@ -3,9 +3,9 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="c5c4691f-a75f-4a47-ad55-8a35a5afa808" name="Ubuntu-Server">
-        <fileTransfer accessType="SFTP" host="192.168.92.170" port="22" sshConfigId="e8d9292e-a51a-4f83-b8e7-cd5a18a72cdb" sshConfig="administrator@192.168.92.170:22 password">
+        <fileTransfer accessType="SFTP" host="192.168.92.170" port="22" sshConfigId="8a794312-74e9-4837-8b18-0b3353400909" sshConfig="administrator@192.168.92.170:22 password">
           <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
         </fileTransfer>
       </webServer>
