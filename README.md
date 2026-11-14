@@ -72,7 +72,7 @@ conveyor_gateway/
      map to guest = bad user
      server min protocol = NT1
   ```
-* Прокрутить файл в самый низ и добавить блок шары:
+* Прокрутить файл в самый низ и добавить блок:
   ```ini
   [conveyor_share]
      comment = Share for conveyor devices
