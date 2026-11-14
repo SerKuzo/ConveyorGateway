@@ -148,7 +148,7 @@ sudo systemctl start conveyor.service
 
 ```bash
 source venv/bin/activate
-pytest tests/
+python -m pytest tests/
 ```
 
 ---
