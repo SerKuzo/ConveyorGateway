@@ -35,7 +35,125 @@ conveyor_gateway/
 * **База данных:** PostgreSQL 16+ (рекомендуется запускать в Docker)
 * **Сеть:** Настроенная Samba для приема файлов от панелей WinCC
 
-## 🚀 Развертывание (Установка с нуля)
+## 🌐 Настройка Samba для приема файлов (Гостевой доступ + поддержка WinCC)
+
+### 1. Создание директории и настройка прав
+* Создать папку для приема файлов:
+  ```bash
+  sudo mkdir -p /srv/conveyor_share
+  ```
+* Назначить гостевого системного пользователя `nobody` владельцем папки (чтобы Samba могла свободно записывать файлы):
+  ```bash
+  sudo chown -R nobody:nogroup /srv/conveyor_share
+  ```
+* Установить права доступа на чтение и запись:
+  ```bash
+  sudo chmod -R 775 /srv/conveyor_share
+  ```
+
+### 2. Установка Samba
+* Обновить список пакетов:
+  ```bash
+  sudo apt update
+  ```
+* Установить Samba:
+  ```bash
+  sudo apt install samba -y
+  ```
+
+### 3. Настройка конфигурации
+* Открыть файл конфигурации:
+  ```bash
+  sudo nano /etc/samba/smb.conf
+  ```
+* В секции `[global]` добавить разрешение гостевого входа и поддержку старого протокола SMBv1 (`NT1`) для совместимости со старыми панелями WinCC (Windows CE / Embedded / Windows 7):
+  ```ini
+  [global]
+     map to guest = bad user
+     server min protocol = NT1
+  ```
+* Прокрутить файл в самый низ и добавить блок шары:
+  ```ini
+  [conveyor_share]
+     comment = Share for conveyor devices
+     path = /srv/conveyor_share
+     browseable = yes
+     read only = no
+     writable = yes
+     guest ok = yes
+     guest only = yes
+     force user = nobody
+     create mask = 0666
+     directory mask = 0777
+  ```
+* Сохранить файл (`Ctrl+O`, `Enter`, `Ctrl+X`).
+* Проверить синтаксис конфигурации перед перезапуском:
+  ```bash
+  testparm
+  ```
+
+### 4. Открытие портов и перезапуск служб
+* Разрешить Samba в файрволе (UFW):
+  ```bash
+  sudo ufw allow samba
+  ```
+* Перезапустить службу Samba:
+  ```bash
+  sudo systemctl restart smbd
+  ```
+* Добавить службу в автозагрузку (чтобы работала после перезагрузки):
+  ```bash
+  sudo systemctl enable smbd
+  ```
+
+---
+
+## 🐳 Установка Docker и запуск PostgreSQL
+
+### 1. Установка Docker и плагина Docker Compose
+Обновите список пакетов, установите Docker вместе с современным плагином Compose (`docker-compose-plugin`) и добавьте службу в автозагрузку:
+
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-plugin
+sudo systemctl enable --now docker
+```
+
+### 2. Создание конфигурации базы данных
+Создайте отдельную директорию для БД и откройте файл `docker-compose.yml`:
+
+```bash
+mkdir -p /opt/conveyor_db
+cd /opt/conveyor_db
+nano docker-compose.yml
+```
+
+Вставьте следующую конфигурацию *(обязательно замените `StrongPass123` на свой надежный пароль)*:
+
+```yaml
+services:
+  db:
+    image: postgres:16
+    container_name: conveyor_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: conveyor_user
+      POSTGRES_PASSWORD: StrongPass123
+      POSTGRES_DB: conveyor_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+```
+
+### 3. Запуск контейнера с PostgreSQL
+Запустите базу данных в фоновом режиме:
+
+```bash
+docker compose up -d
+```
+
+## 🚀 Развертывание проекта (Установка с нуля)
 
 ### 1. Клонирование репозитория
 ```bash
